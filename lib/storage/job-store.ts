@@ -6,8 +6,13 @@
 import type { GenerationJob, GenerationStatus, GeneratedSlide, TemplateType } from '@/lib/types/presentation';
 import { randomUUID } from 'crypto';
 
-// Simple in-memory store (not ideal for production but works for MVP on single instance)
-const jobs = new Map<string, GenerationJob>();
+// Use global to survive Next.js HMR module reloads in dev mode.
+// On HMR, the module re-executes but `global.__jobStore` persists, so in-flight jobs aren't lost.
+const g = global as typeof global & { __jobStore?: Map<string, GenerationJob> };
+if (!g.__jobStore) {
+  g.__jobStore = new Map<string, GenerationJob>();
+}
+const jobs = g.__jobStore;
 
 // Auto-cleanup interval (24 hours)
 const JOB_EXPIRY_TIME = 24 * 60 * 60 * 1000;

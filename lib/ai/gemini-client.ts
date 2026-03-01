@@ -19,7 +19,7 @@ function getClient(): GoogleGenerativeAI {
   return client;
 }
 
-const MODEL_NAME = 'gemini-1.5-flash';
+const MODEL_NAME = 'gemini-2.0-flash';
 
 const SAFETY_SETTINGS = [
   {
