@@ -1,10 +1,11 @@
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { type LanguageModelV1 } from "ai";
 import { createOllama } from "ollama-ai-provider";
 
 /**
  * Centralized model picker function for all presentation generation routes
- * Supports OpenAI, Ollama, and LM Studio models
+ * Supports Gemini (default), OpenAI, Ollama, and LM Studio models
  */
 export function modelPicker(
   modelProvider: string,
@@ -26,7 +27,17 @@ export function modelPicker(
     return lmstudio(modelId) as unknown as LanguageModelV1;
   }
 
-  // Default to OpenAI
-  const openai = createOpenAI();
-  return openai("gpt-4o-mini") as unknown as LanguageModelV1;
+  if (modelProvider === "openai") {
+    // Use OpenAI if explicitly selected
+    const openai = createOpenAI({
+      apiKey: process.env.OPENAI_API_KEY ?? "",
+    });
+    return openai(modelId ?? "gpt-4o-mini") as unknown as LanguageModelV1;
+  }
+
+  // Default: Gemini (gemini or any other/unrecognized provider)
+  const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GEMINI_API_KEY ?? "",
+  });
+  return google(modelId ?? "gemini-2.0-flash") as unknown as LanguageModelV1;
 }

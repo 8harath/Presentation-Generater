@@ -36,7 +36,7 @@ export function ModelPicker({
       if (savedModel) {
         console.log("Restoring model from localStorage:", savedModel);
         setModelProvider(
-          savedModel.modelProvider as "openai" | "ollama" | "lmstudio",
+          savedModel.modelProvider as "gemini" | "openai" | "ollama" | "lmstudio",
         );
         setModelId(savedModel.modelId);
       }
@@ -96,6 +96,13 @@ export function ModelPicker({
   const getCurrentModelOption = () => {
     const currentValue = getCurrentModelValue();
 
+    if (currentValue === "gemini") {
+      return {
+        label: "Gemini 2.0 Flash",
+        icon: Bot,
+      };
+    }
+
     if (currentValue === "openai") {
       return {
         label: "GPT-4o-mini",
@@ -132,7 +139,12 @@ export function ModelPicker({
   // Handle model change
   const handleModelChange = (value: string) => {
     console.log("Model changed to:", value);
-    if (value === "openai") {
+    if (value === "gemini") {
+      setModelProvider("gemini" as "openai");
+      setModelId("");
+      setSelectedModel("gemini", "");
+      console.log("Saved to localStorage: gemini, ''");
+    } else if (value === "openai") {
       setModelProvider("openai");
       setModelId("");
       setSelectedModel("openai", "");
@@ -193,16 +205,27 @@ export function ModelPicker({
             </SelectGroup>
           )}
 
-          {/* OpenAI Group */}
+          {/* Cloud Models Group */}
           <SelectGroup>
             <SelectLabel>Cloud Models</SelectLabel>
+            <SelectItem value="gemini">
+              <div className="flex items-center gap-3">
+                <Bot className="h-4 w-4 flex-shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="truncate text-sm">Gemini 2.0 Flash</span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    Google Gemini (default)
+                  </span>
+                </div>
+              </div>
+            </SelectItem>
             <SelectItem value="openai">
               <div className="flex items-center gap-3">
                 <Bot className="h-4 w-4 flex-shrink-0" />
                 <div className="flex flex-col min-w-0">
                   <span className="truncate text-sm">GPT-4o-mini</span>
                   <span className="text-xs text-muted-foreground truncate">
-                    Cloud-based AI model
+                    OpenAI (requires API key)
                   </span>
                 </div>
               </div>

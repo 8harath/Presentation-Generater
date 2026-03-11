@@ -3,11 +3,7 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    provider = "sqlite"
     url      = env("DATABASE_URL")
 }
 
@@ -18,22 +14,17 @@ model Account {
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
+    refresh_token            String?
+    access_token             String?
     expires_at               Int?
     token_type               String?
     scope                    String?
-    id_token                 String? // @db.Text
+    id_token                 String?
     session_state            String?
     user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
 
     @@unique([provider, providerAccountId])
-}
-
-enum UserRole {
-    ADMIN
-    USER
 }
 
 model User {
@@ -45,15 +36,15 @@ model User {
     image         String?
     createdAt     DateTime  @default(now())
     updatedAt     DateTime  @default(now()) @updatedAt
-    headline      String?   @db.VarChar(100)
-    bio           String?   @db.Text
-    interests     String[]
+    headline      String?
+    bio           String?
+    interests     String    @default("[]") // Stored as JSON string for SQLite compatibility
     location      String?
     website       String?
     accounts      Account[]
 
-    role      UserRole @default(USER)
-    hasAccess Boolean  @default(false)
+    role      String  @default("USER") // USER or ADMIN
+    hasAccess Boolean @default(false)
 
     // Document system
     documents BaseDocument[]
@@ -64,29 +55,16 @@ model User {
     GeneratedImage GeneratedImage[]
 }
 
-enum DocumentType {
-    NOTE
-    DOCUMENT
-    DRAWING
-    DESIGN
-    STICKY_NOTES
-    MIND_MAP
-    RAG
-    RESEARCH_PAPER
-    FLIPBOOK
-    PRESENTATION
-}
-
 model BaseDocument {
-    id           String        @id @default(cuid())
+    id           String      @id @default(cuid())
     title        String
-    type         DocumentType
+    type         String      // DocumentType stored as string for SQLite
     userId       String
-    user         User          @relation(fields: [userId], references: [id])
+    user         User        @relation(fields: [userId], references: [id])
     thumbnailUrl String?
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
-    isPublic     Boolean       @default(false)
+    createdAt    DateTime    @default(now())
+    updatedAt    DateTime    @updatedAt
+    isPublic     Boolean     @default(false)
     documentType String
     // Relations to specific document types
     presentation Presentation?
@@ -97,17 +75,17 @@ model BaseDocument {
 
 model Presentation {
     id                String       @id @default(cuid())
-    content           Json // Presentation content including slides, theme, etc.
+    content           String       // JSON stored as string for SQLite
     theme             String       @default("default")
-    imageSource       String       @default("ai") // The image model used for generating images
-    prompt            String? // The prompt used for generating the presentation
-    presentationStyle String? // The style of the presentation
-    language          String?      @default("en-US") // The language of the presentation
-    outline           String[] // Store the presentation outline
-    searchResults     Json? // Store the search results
+    imageSource       String       @default("ai")
+    prompt            String?
+    presentationStyle String?
+    language          String?      @default("en-US")
+    outline           String       @default("[]") // Stored as JSON string for SQLite
+    searchResults     String?      // JSON stored as string for SQLite
     base              BaseDocument @relation(fields: [id], references: [id], onDelete: Cascade)
     templateId        String?
-    customThemeId     String? // Reference to custom theme if used
+    customThemeId     String?
     customTheme       CustomTheme? @relation(fields: [customThemeId], references: [id])
 }
 
@@ -121,7 +99,7 @@ model CustomTheme {
     isPublic      Boolean        @default(false)
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
-    themeData     Json // Store the complete theme configuration
+    themeData     String         // JSON stored as string for SQLite
     presentations Presentation[]
 
     @@index([userId])

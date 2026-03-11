@@ -3,7 +3,9 @@ import { db } from "@/server/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type DefaultSession, type Session } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -25,6 +27,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   trustHost: true,
   session: {
     strategy: "jwt",
+  },
+  pages: {
+    signIn: "/auth/signin",
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
@@ -86,15 +91,69 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         }
       }
 
+      if (account?.provider === "credentials") {
+        user.hasAccess = true;
+        user.role = "USER";
+      }
+
       return true;
     },
   },
 
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    // Credentials provider (email + password) — works without Google OAuth
+    CredentialsProvider({
+      name: "Email & Password",
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "you@example.com" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
+
+        // Look up the user in the database
+        let user = await db.user.findUnique({
+          where: { email: credentials.email as string },
+        });
+
+        if (!user) {
+          // Auto-create account on first login (for easy local dev)
+          user = await db.user.create({
+            data: {
+              email: credentials.email as string,
+              name: (credentials.email as string).split("@")[0],
+              password: credentials.password as string, // In production, hash this!
+              hasAccess: true,
+              role: "USER",
+            },
+          });
+        } else {
+          // Verify password (simple comparison for local dev — use bcrypt in production)
+          if (user.password !== credentials.password) {
+            return null;
+          }
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          hasAccess: user.hasAccess,
+          role: user.role,
+        };
+      },
     }),
+
+    // Google provider (only enabled when credentials are set)
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? [
+        GoogleProvider({
+          clientId: env.GOOGLE_CLIENT_ID,
+          clientSecret: env.GOOGLE_CLIENT_SECRET,
+        }),
+      ]
+      : []),
   ],
 });
