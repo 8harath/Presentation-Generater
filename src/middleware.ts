@@ -4,6 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const session = await auth();
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  const isSharedPresentationRoute = request.nextUrl.pathname.startsWith(
+    "/presentation/share/",
+  );
 
   // Always redirect from root to /presentation
   if (request.nextUrl.pathname === "/") {
@@ -16,7 +19,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // If user is not authenticated and trying to access a protected route, redirect to sign-in
-  if (!session && !isAuthPage && !request.nextUrl.pathname.startsWith("/api")) {
+  if (
+    !session &&
+    !isAuthPage &&
+    !isSharedPresentationRoute &&
+    !request.nextUrl.pathname.startsWith("/api")
+  ) {
     return NextResponse.redirect(
       new URL(
         `/auth/signin?callbackUrl=${encodeURIComponent(request.url)}`,

@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { hashPassword, isHashedPassword, verifyPassword } from "@/lib/password";
 import { db } from "@/server/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type DefaultSession, type Session } from "next-auth";
@@ -44,12 +45,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.isAdmin = user.role === "ADMIN";
       }
 
-      // Handle updates
       if (trigger === "update" && (session as Session)?.user) {
         const user = await db.user.findUnique({
           where: { id: token.id as string },
         });
-        console.log("Session", session, user);
+
         if (session) {
           token.name = (session as Session).user.name;
           token.image = (session as Session).user.image;
@@ -58,8 +58,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           token.role = (session as Session).user.role;
           token.isAdmin = (session as Session).user.role === "ADMIN";
         }
+
         if (user) {
-          token.hasAccess = user?.hasAccess ?? false;
+          token.hasAccess = user.hasAccess ?? false;
           token.role = user.role;
           token.isAdmin = user.role === "ADMIN";
         }
@@ -102,7 +103,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
-    // Credentials provider (email + password) — works without Google OAuth
     CredentialsProvider({
       name: "Email & Password",
       credentials: {
@@ -112,26 +112,37 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Look up the user in the database
         let user = await db.user.findUnique({
           where: { email: credentials.email as string },
         });
 
         if (!user) {
-          // Auto-create account on first login (for easy local dev)
           user = await db.user.create({
             data: {
               email: credentials.email as string,
               name: (credentials.email as string).split("@")[0],
-              password: credentials.password as string, // In production, hash this!
+              password: await hashPassword(credentials.password as string),
               hasAccess: true,
               role: "USER",
             },
           });
         } else {
-          // Verify password (simple comparison for local dev — use bcrypt in production)
-          if (user.password !== credentials.password) {
+          const isValidPassword = await verifyPassword(
+            credentials.password as string,
+            user.password,
+          );
+
+          if (!isValidPassword) {
             return null;
+          }
+
+          if (user.password && !isHashedPassword(user.password)) {
+            user = await db.user.update({
+              where: { id: user.id },
+              data: {
+                password: await hashPassword(credentials.password as string),
+              },
+            });
           }
         }
 
@@ -145,15 +156,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         };
       },
     }),
-
-    // Google provider (only enabled when credentials are set)
     ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? [
-        GoogleProvider({
-          clientId: env.GOOGLE_CLIENT_ID,
-          clientSecret: env.GOOGLE_CLIENT_SECRET,
-        }),
-      ]
+          GoogleProvider({
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
       : []),
   ],
 });
