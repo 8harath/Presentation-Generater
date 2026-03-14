@@ -1,4 +1,5 @@
 "use client";
+import { getPresentation } from "@/app/_actions/presentation/presentationActions";
 import { togglePresentationPublicStatus } from "@/app/_actions/presentation/sharedPresentationActions";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,7 +62,20 @@ export function ShareButton() {
     },
   });
 
-  const handleOpenDialog = () => {
+  const handleOpenDialog = async () => {
+    if (currentPresentationId) {
+      const result = await getPresentation(currentPresentationId);
+      if (result.success && result.presentation) {
+        const currentIsPublic = result.presentation.isPublic;
+        setIsPublic(currentIsPublic);
+        setShareLink(
+          currentIsPublic
+            ? `${window.location.origin}/presentation/share/${currentPresentationId}`
+            : "",
+        );
+      }
+    }
+
     setIsShareDialogOpen(true);
   };
 
