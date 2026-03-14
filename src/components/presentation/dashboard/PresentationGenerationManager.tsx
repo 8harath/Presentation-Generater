@@ -70,6 +70,47 @@ export function PresentationGenerationManager() {
   // Track if title has already been extracted to avoid unnecessary processing
   const titleExtractedRef = useRef<boolean>(false);
 
+  const resolveRootImage = async (
+    query: string,
+    layoutType?: string,
+  ): Promise<{ image: { url: string } } | null> => {
+    const tryStockImage = async () => {
+      const unsplashResult = await getImageFromUnsplash(
+        query,
+        layoutType as Parameters<typeof getImageFromUnsplash>[1],
+      );
+
+      if (unsplashResult.success && unsplashResult.imageUrl) {
+        return { image: { url: unsplashResult.imageUrl } };
+      }
+
+      return null;
+    };
+
+    const tryAiImage = async () => {
+      const generatedImage = await generateImageAction(query, imageModel);
+      if (generatedImage.success && generatedImage.image?.url) {
+        return { image: { url: generatedImage.image.url } };
+      }
+
+      return null;
+    };
+
+    const attempts =
+      imageSource === "stock"
+        ? [tryStockImage, tryAiImage]
+        : [tryAiImage, tryStockImage];
+
+    for (const attempt of attempts) {
+      const result = await attempt();
+      if (result?.image?.url) {
+        return result;
+      }
+    }
+
+    return null;
+  };
+
   // Function to update slides using requestAnimationFrame
   const updateSlidesWithRAF = (): void => {
     // Extract thinking for presentation and parse only the remaining content
@@ -112,21 +153,10 @@ export function PresentationGenerationManager() {
           startRootImageGeneration(slideId, rootImage.query);
           void (async () => {
             try {
-              let result;
-
-              if (imageSource === "stock") {
-                // Use Unsplash for stock images
-                const unsplashResult = await getImageFromUnsplash(
-                  rootImage.query,
-                  rootImage.layoutType,
-                );
-                if (unsplashResult.success && unsplashResult.imageUrl) {
-                  result = { image: { url: unsplashResult.imageUrl } };
-                }
-              } else {
-                // Use AI generation
-                result = await generateImageAction(rootImage.query, imageModel);
-              }
+              const result = await resolveRootImage(
+                rootImage.query,
+                rootImage.layoutType,
+              );
 
               if (result?.image?.url) {
                 completeRootImageGeneration(slideId, result.image.url);
@@ -505,24 +535,10 @@ export function PresentationGenerationManager() {
         if (slide?.rootImage?.query) {
           void (async () => {
             try {
-              let result;
-
-              if (imageSource === "stock") {
-                // Use Unsplash for stock images
-                const unsplashResult = await getImageFromUnsplash(
-                  slide.rootImage!.query,
-                  slide.rootImage!.layoutType,
-                );
-                if (unsplashResult.success && unsplashResult.imageUrl) {
-                  result = { image: { url: unsplashResult.imageUrl } };
-                }
-              } else {
-                // Use AI generation
-                result = await generateImageAction(
-                  slide.rootImage!.query,
-                  imageModel,
-                );
-              }
+              const result = await resolveRootImage(
+                slide.rootImage!.query,
+                slide.rootImage!.layoutType,
+              );
 
               if (result?.image?.url) {
                 completeRootImageGeneration(slideId, result.image.url);

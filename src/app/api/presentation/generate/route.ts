@@ -244,7 +244,7 @@ export async function POST(req: Request) {
       outline,
       language,
       tone,
-      modelProvider = "openai",
+      modelProvider = "gemini",
       modelId,
       searchResults,
     } = (await req.json()) as SlidesRequest;

@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       prompt,
       numberOfCards,
       language,
-      modelProvider = "openai",
+      modelProvider = "gemini",
       modelId,
     } = (await req.json()) as OutlineRequest;
 

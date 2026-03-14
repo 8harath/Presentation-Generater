@@ -7,8 +7,6 @@ import { db } from "@/server/db";
 import Together from "together-ai";
 import { UTFile } from "uploadthing/server";
 
-const together = new Together({ apiKey: env.TOGETHER_AI_API_KEY });
-
 export type ImageModelList =
   | "black-forest-labs/FLUX1.1-pro"
   | "black-forest-labs/FLUX.1-schnell"
@@ -28,7 +26,22 @@ export async function generateImageAction(
     throw new Error("You must be logged in to generate images");
   }
 
+  if (!env.TOGETHER_AI_API_KEY) {
+    return {
+      success: false,
+      error: "TOGETHER_AI_API_KEY is not configured",
+    };
+  }
+
+  if (!env.UPLOADTHING_TOKEN) {
+    return {
+      success: false,
+      error: "UPLOADTHING_TOKEN is not configured",
+    };
+  }
+
   try {
+    const together = new Together({ apiKey: env.TOGETHER_AI_API_KEY });
     console.log(`Generating image with model: ${model}`);
 
     // Generate the image using Together AI

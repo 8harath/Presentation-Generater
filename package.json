@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "next build --turbo",
+    "db:deploy": "prisma db push",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "dev": "next dev --turbo",
     "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma db push && next build --turbo",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "check": "biome check .",

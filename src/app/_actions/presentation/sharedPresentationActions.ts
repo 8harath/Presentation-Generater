@@ -2,27 +2,26 @@
 
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
+import { DocumentType } from "@prisma/client";
 
-/**
- * Get a public presentation without requiring authentication
- * This is used for the shared presentation view
- */
 export async function getSharedPresentation(id: string) {
   try {
-    const presentation = await db.baseDocument.findUnique({
+    const presentation = await db.baseDocument.findFirst({
       where: {
         id,
-        isPublic: true, // Only fetch public presentations
+        isPublic: true,
+        type: DocumentType.PRESENTATION,
       },
       include: {
         presentation: {
-          select: {
-            id: true,
-            content: true,
-            theme: true,
-            outline: true,
-            presentationStyle: true,
-            language: true,
+          include: {
+            customTheme: {
+              select: {
+                id: true,
+                themeData: true,
+                name: true,
+              },
+            },
           },
         },
         user: {
@@ -54,9 +53,6 @@ export async function getSharedPresentation(id: string) {
   }
 }
 
-/**
- * Toggle the public status of a presentation
- */
 export async function togglePresentationPublicStatus(
   id: string,
   isPublic: boolean,
@@ -70,12 +66,24 @@ export async function togglePresentationPublicStatus(
   }
 
   try {
-    // This requires auth and ownership verification
-    const presentation = await db.baseDocument.update({
+    const presentation = await db.baseDocument.findFirst({
       where: {
         id,
-        userId: session.user.id, // Only the owner can change the public status
+        userId: session.user.id,
+        type: DocumentType.PRESENTATION,
       },
+      select: { id: true },
+    });
+
+    if (!presentation) {
+      return {
+        success: false,
+        message: "Presentation not found",
+      };
+    }
+
+    const updatedPresentation = await db.baseDocument.update({
+      where: { id: presentation.id },
       data: { isPublic },
     });
 
@@ -84,7 +92,7 @@ export async function togglePresentationPublicStatus(
       message: isPublic
         ? "Presentation is now publicly accessible"
         : "Presentation is now private",
-      presentation,
+      presentation: updatedPresentation,
     };
   } catch (error) {
     console.error("Error updating presentation public status:", error);
