@@ -1,9 +1,14 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const inferredVercelUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : undefined;
+
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
+    DIRECT_URL: z.string().url().optional(),
     TAVILY_API_KEY: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -17,8 +22,8 @@ export const env = createEnv({
     UNSPLASH_ACCESS_KEY: z.string().optional(),
     UPLOADTHING_TOKEN: z.string().optional(),
     NEXTAUTH_URL: z.preprocess(
-      (str) => process.env.VERCEL_URL ?? str,
-      process.env.VERCEL ? z.string() : z.string().url(),
+      (value) => inferredVercelUrl ?? value,
+      z.string().url(),
     ),
     NEXTAUTH_SECRET:
       process.env.NODE_ENV === "production"
@@ -28,6 +33,7 @@ export const env = createEnv({
 
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
+    DIRECT_URL: process.env.DIRECT_URL,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     UNSPLASH_ACCESS_KEY: process.env.UNSPLASH_ACCESS_KEY,

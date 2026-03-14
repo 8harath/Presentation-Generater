@@ -3,8 +3,13 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+enum DocumentType {
+    PRESENTATION
 }
 
 // Necessary for Next auth
@@ -58,7 +63,7 @@ model User {
 model BaseDocument {
     id           String      @id @default(cuid())
     title        String
-    type         String      // DocumentType stored as string for SQLite
+    type         DocumentType
     userId       String
     user         User        @relation(fields: [userId], references: [id])
     thumbnailUrl String?
@@ -75,14 +80,14 @@ model BaseDocument {
 
 model Presentation {
     id                String       @id @default(cuid())
-    content           String       // JSON stored as string for SQLite
-    theme             String       @default("default")
+    content           Json
+    theme             String       @default("mystique")
     imageSource       String       @default("ai")
     prompt            String?
     presentationStyle String?
     language          String?      @default("en-US")
-    outline           String       @default("[]") // Stored as JSON string for SQLite
-    searchResults     String?      // JSON stored as string for SQLite
+    outline           Json         @default("[]")
+    searchResults     Json?
     base              BaseDocument @relation(fields: [id], references: [id], onDelete: Cascade)
     templateId        String?
     customThemeId     String?
@@ -99,7 +104,7 @@ model CustomTheme {
     isPublic      Boolean        @default(false)
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
-    themeData     String         // JSON stored as string for SQLite
+    themeData     Json
     presentations Presentation[]
 
     @@index([userId])
