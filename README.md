@@ -26,7 +26,7 @@ An open-source, AI-powered presentation generator alternative to Gamma.app that 
 - [Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Database Setup](#database-setup)
+  - [Deployment](#deployment)
 - [Usage](#-usage)
   - [Creating a Presentation](#creating-a-presentation)
   - [Custom Themes](#custom-themes)
@@ -46,12 +46,12 @@ An open-source, AI-powered presentation generator alternative to Gamma.app that 
 - **Customizable Slides**: Choose the number of slides, language, and page style
 - **Editable Outlines**: Review and modify AI-generated outlines before finalizing
 - **Real-Time Generation**: Watch your presentation build live as content is created
-- **Auto-Save**: Everything saves automatically as you work
+- **Instant Session Mode**: Generate and edit presentations without setting up a database
 
 ### Design & Customization
 
 - **Multiple Themes**: 9 built-in themes with more coming soon
-- **Custom Theme Creation**: Create and save your own themes from scratch
+- **Built-In Themes**: Choose from the included presentation themes
 - **Full Editability**: Modify text, fonts, and design elements as needed
 - **Image Generation**: Choose different AI image generation models for your slides
 - **Audience-Focused Styles**: Select between professional and casual presentation styles
@@ -68,7 +68,7 @@ An open-source, AI-powered presentation generator alternative to Gamma.app that 
 | ------------------ | -------------------------- |
 | **Framework**      | Next.js, React, TypeScript |
 | **Styling**        | Tailwind CSS               |
-| **Database**       | PostgreSQL with Prisma ORM |
+| **Database**       | None (instant mode)        |
 | **AI Integration** | Gemini API, OpenAI API, Together AI |
 | **Authentication** | None (public access)       |
 | **UI Components**  | Radix UI                   |
@@ -84,7 +84,6 @@ Before you begin, ensure you have the following installed:
 
 - Node.js 18.x or higher
 - npm, yarn, or pnpm package manager
-- Supabase Postgres database
 - Required API keys:
   - Google Gemini API key (required for presentation generation)
   - Together AI API key (optional, for image generation)
@@ -109,10 +108,6 @@ Before you begin, ensure you have the following installed:
    Create a `.env` file in the root directory with the following variables:
 
    ```env
-   # Database
-   DATABASE_URL=""
-   DIRECT_URL=""
-
    # AI Providers
    GOOGLE_GEMINI_API_KEY=""
    OPENAI_API_KEY=""
@@ -124,25 +119,19 @@ Before you begin, ensure you have the following installed:
    UNSPLASH_ACCESS_KEY=""
    TAVILY_API_KEY=""
 
-   # Optional shared app user label
-   LOCAL_USER_EMAIL="local@allweone.app"
-   LOCAL_USER_NAME="Local Workspace"
    ```
 
    > 💡 **Tip**: Copy `.env.example` to `.env` and fill in your actual values.
 
-### Database Setup
+### Deployment
 
-1. **Initialize the database**
+1. **Build the app**
 
    ```bash
-   npm run setup:supabase
+   npm run vercel-build
    ```
 
-   This will:
-   - generate the Prisma client
-   - create/update all tables in your Supabase Postgres database
-   - seed the shared app user used for all public visitors
+   This build only requires your Gemini key for the core experience.
 
 1. **Start the development server**
 
@@ -154,12 +143,10 @@ Before you begin, ensure you have the following installed:
 
    Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Vercel + Supabase Deployment
+## Vercel Deployment
 
-For a no-auth deployment, the minimum Vercel environment variables are:
+For instant mode, the minimum Vercel environment variable is:
 
-- `DATABASE_URL`: Supabase pooled connection string
-- `DIRECT_URL`: Supabase direct Postgres connection string
 - `GOOGLE_GEMINI_API_KEY`: required for Gemini-powered outline and presentation generation
 
 Optional variables:
@@ -169,9 +156,6 @@ Optional variables:
 - `UPLOADTHING_TOKEN`: only if you want file uploads
 - `UNSPLASH_ACCESS_KEY`: only if you want stock image search from Unsplash
 - `TAVILY_API_KEY`: only if you want web search during outline generation
-- `LOCAL_USER_EMAIL`: rename the built-in local workspace user
-- `LOCAL_USER_NAME`: display name for the built-in local workspace user
-
 To keep the repo updated locally, run:
 
 ```bash
