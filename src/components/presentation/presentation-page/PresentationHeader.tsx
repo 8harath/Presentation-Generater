@@ -11,10 +11,8 @@ import { useEffect, useState } from "react";
 import AllweoneText from "@/components/globals/allweone-logo";
 import { Button } from "@/components/ui/button";
 import * as motion from "framer-motion/client";
-import { ExportButton } from "./buttons/ExportButton";
 import { PresentButton } from "./buttons/PresentButton";
 import { SaveStatus } from "./buttons/SaveStatus";
-import { ShareButton } from "./buttons/ShareButton";
 
 interface PresentationHeaderProps {
   title?: string;
@@ -91,14 +89,6 @@ export default function PresentationHeader({ title }: PresentationHeaderProps) {
         <SaveStatus />
 
         {/* Theme selector moved to right editor panel */}
-
-        {/* Export button - Only in presentation page, not outline or present mode */}
-        {isPresentationPage && !isPresenting && (
-          <ExportButton presentationId={currentPresentationId ?? ""} />
-        )}
-
-        {/* Share button - Only in presentation page, not outline */}
-        {isPresentationPage && !isPresenting && <ShareButton />}
 
         {/* Present button - Only in presentation page, not outline */}
         {isPresentationPage && <PresentButton />}

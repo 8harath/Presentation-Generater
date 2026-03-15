@@ -1,9 +1,6 @@
 "use server";
 
 import { type PlateSlide } from "@/components/presentation/utils/parser";
-import { auth } from "@/server/auth";
-import { db } from "@/server/db";
-import { DocumentType, Prisma } from "@prisma/client";
 
 type PresentationContent = {
   slides: PlateSlide[];
@@ -12,27 +9,11 @@ type PresentationContent = {
 
 type SearchResults = Array<{ query: string; results: unknown[] }>;
 
-async function getOwnedPresentation(id: string, userId: string) {
-  return db.baseDocument.findFirst({
-    where: {
-      id,
-      userId,
-      type: DocumentType.PRESENTATION,
-    },
-    include: {
-      presentation: true,
-    },
-  });
-}
+const NOT_AVAILABLE_MESSAGE =
+  "Saved presentations are disabled in instant mode. Generate a new presentation from the dashboard.";
 
 export async function createPresentation({
-  content,
   title,
-  theme = "mystique",
-  outline,
-  imageSource,
-  presentationStyle,
-  language,
 }: {
   content: PresentationContent;
   title: string;
@@ -42,71 +23,28 @@ export async function createPresentation({
   presentationStyle?: string;
   language?: string;
 }) {
-  const session = await auth();
-
-  try {
-    const presentation = await db.baseDocument.create({
-      data: {
-        type: DocumentType.PRESENTATION,
-        documentType: "presentation",
-        title: title || "Untitled Presentation",
-        userId: session.user.id,
-        presentation: {
-          create: {
-            content: content as unknown as Prisma.InputJsonValue,
-            theme,
-            imageSource,
-            presentationStyle,
-            language,
-            outline: (outline ?? []) as Prisma.InputJsonValue,
-          },
-        },
-      },
-      include: {
-        presentation: true,
-      },
-    });
-
-    return {
-      success: true,
-      message: "Presentation created successfully",
-      presentation,
-    };
-  } catch (error) {
-    console.error("Failed to create presentation:", error);
-    return {
-      success: false,
-      message: "Failed to create presentation",
-    };
-  }
+  return {
+    success: true,
+    message: "Instant presentation session created",
+    presentation: {
+      id: `session-${Date.now()}`,
+      title: title || "Untitled Presentation",
+    },
+  };
 }
 
 export async function createEmptyPresentation(
   title: string,
-  theme = "mystique",
-  language = "en-US",
+  _theme = "mystique",
+  _language = "en-US",
 ) {
   return createPresentation({
     content: { slides: [] },
     title,
-    theme,
-    language,
   });
 }
 
-export async function updatePresentation({
-  id,
-  content,
-  prompt,
-  title,
-  theme,
-  outline,
-  searchResults,
-  imageSource,
-  presentationStyle,
-  language,
-  thumbnailUrl,
-}: {
+export async function updatePresentation(_: {
   id: string;
   content?: PresentationContent;
   title?: string;
@@ -119,290 +57,58 @@ export async function updatePresentation({
   language?: string;
   thumbnailUrl?: string;
 }) {
-  const session = await auth();
-
-  try {
-    const existing = await getOwnedPresentation(id, session.user.id);
-
-    if (!existing?.presentation) {
-      return {
-        success: false,
-        message: "Presentation not found",
-      };
-    }
-
-    const presentation = await db.baseDocument.update({
-      where: { id: existing.id },
-      data: {
-        title,
-        thumbnailUrl,
-        presentation: {
-          update: {
-            prompt,
-            content: content as Prisma.InputJsonValue | undefined,
-            theme,
-            imageSource,
-            presentationStyle,
-            language,
-            outline: outline as Prisma.InputJsonValue | undefined,
-            searchResults: searchResults as Prisma.InputJsonValue | undefined,
-          },
-        },
-      },
-      include: {
-        presentation: true,
-      },
-    });
-
-    return {
-      success: true,
-      message: "Presentation updated successfully",
-      presentation,
-    };
-  } catch (error) {
-    console.error("Failed to update presentation:", error);
-    return {
-      success: false,
-      message: "Failed to update presentation",
-    };
-  }
+  return {
+    success: true,
+    message: "Instant mode does not persist presentation changes",
+  };
 }
 
-export async function updatePresentationTitle(id: string, title: string) {
-  const session = await auth();
-
-  try {
-    const existing = await getOwnedPresentation(id, session.user.id);
-
-    if (!existing) {
-      return {
-        success: false,
-        message: "Presentation not found",
-      };
-    }
-
-    const presentation = await db.baseDocument.update({
-      where: { id: existing.id },
-      data: { title },
-      include: {
-        presentation: true,
-      },
-    });
-
-    return {
-      success: true,
-      message: "Presentation title updated successfully",
-      presentation,
-    };
-  } catch (error) {
-    console.error("Failed to update presentation title:", error);
-    return {
-      success: false,
-      message: "Failed to update presentation title",
-    };
-  }
+export async function updatePresentationTitle(_id: string, _title: string) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+  };
 }
 
-export async function deletePresentation(id: string) {
-  return deletePresentations([id]);
+export async function deletePresentation(_id: string) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+  };
 }
 
-export async function deletePresentations(ids: string[]) {
-  const session = await auth();
-
-  try {
-    const result = await db.baseDocument.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-        userId: session.user.id,
-        type: DocumentType.PRESENTATION,
-      },
-    });
-
-    const deletedCount = result.count;
-    const failedCount = ids.length - deletedCount;
-
-    if (failedCount > 0) {
-      return {
-        success: deletedCount > 0,
-        message:
-          deletedCount > 0
-            ? `Deleted ${deletedCount} presentations, failed to delete ${failedCount} presentations`
-            : "Failed to delete presentations",
-        partialSuccess: deletedCount > 0,
-      };
-    }
-
-    return {
-      success: true,
-      message:
-        ids.length === 1
-          ? "Presentation deleted successfully"
-          : `${deletedCount} presentations deleted successfully`,
-    };
-  } catch (error) {
-    console.error("Failed to delete presentations:", error);
-    return {
-      success: false,
-      message: "Failed to delete presentations",
-    };
-  }
+export async function deletePresentations(_ids: string[]) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+    partialSuccess: false,
+  };
 }
 
-export async function getPresentation(id: string) {
-  const session = await auth();
-
-  try {
-    const presentation = await getOwnedPresentation(id, session.user.id);
-
-    if (!presentation) {
-      return {
-        success: false,
-        message: "Presentation not found",
-      };
-    }
-
-    return {
-      success: true,
-      presentation,
-    };
-  } catch (error) {
-    console.error("Failed to fetch presentation:", error);
-    return {
-      success: false,
-      message: "Failed to fetch presentation",
-    };
-  }
+export async function getPresentation(_id: string) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+  };
 }
 
-export async function getPresentationContent(id: string) {
-  const session = await auth();
-
-  try {
-    const presentation = await db.baseDocument.findFirst({
-      where: {
-        id,
-        type: DocumentType.PRESENTATION,
-        OR: [{ userId: session.user.id }, { isPublic: true }],
-      },
-      include: {
-        presentation: {
-          select: {
-            id: true,
-            content: true,
-            theme: true,
-            outline: true,
-          },
-        },
-      },
-    });
-
-    if (!presentation) {
-      return {
-        success: false,
-        message: "Presentation not found",
-      };
-    }
-
-    return {
-      success: true,
-      presentation: presentation.presentation,
-    };
-  } catch (error) {
-    console.error("Failed to fetch presentation content:", error);
-    return {
-      success: false,
-      message: "Failed to fetch presentation",
-    };
-  }
+export async function getPresentationContent(_id: string) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+  };
 }
 
-export async function updatePresentationTheme(id: string, theme: string) {
-  const session = await auth();
-
-  try {
-    const existing = await getOwnedPresentation(id, session.user.id);
-
-    if (!existing?.presentation) {
-      return {
-        success: false,
-        message: "Presentation not found",
-      };
-    }
-
-    const presentation = await db.presentation.update({
-      where: { id: existing.id },
-      data: { theme },
-    });
-
-    return {
-      success: true,
-      message: "Presentation theme updated successfully",
-      presentation,
-    };
-  } catch (error) {
-    console.error("Failed to update presentation theme:", error);
-    return {
-      success: false,
-      message: "Failed to update presentation theme",
-    };
-  }
+export async function updatePresentationTheme(_id: string, _theme: string) {
+  return {
+    success: true,
+    message: "Theme updated for the current instant session",
+  };
 }
 
-export async function duplicatePresentation(id: string, newTitle?: string) {
-  const session = await auth();
-
-  try {
-    const original = await getOwnedPresentation(id, session.user.id);
-
-    if (!original?.presentation) {
-      return {
-        success: false,
-        message: "Original presentation not found",
-      };
-    }
-
-    const duplicated = await db.baseDocument.create({
-      data: {
-        type: DocumentType.PRESENTATION,
-        documentType: "presentation",
-        title: newTitle ?? `${original.title} (Copy)`,
-        userId: session.user.id,
-        isPublic: false,
-        presentation: {
-          create: {
-            content: original.presentation.content as Prisma.InputJsonValue,
-            theme: original.presentation.theme,
-            imageSource: original.presentation.imageSource,
-            prompt: original.presentation.prompt ?? undefined,
-            presentationStyle: original.presentation.presentationStyle ?? undefined,
-            language: original.presentation.language ?? undefined,
-            outline: original.presentation.outline as Prisma.InputJsonValue,
-            searchResults:
-              original.presentation.searchResults === null
-                ? undefined
-                : (original.presentation.searchResults as Prisma.InputJsonValue),
-            customThemeId: original.presentation.customThemeId ?? undefined,
-          },
-        },
-      },
-      include: {
-        presentation: true,
-      },
-    });
-
-    return {
-      success: true,
-      message: "Presentation duplicated successfully",
-      presentation: duplicated,
-    };
-  } catch (error) {
-    console.error("Failed to duplicate presentation:", error);
-    return {
-      success: false,
-      message: "Failed to duplicate presentation",
-    };
-  }
+export async function duplicatePresentation(_id: string, _newTitle?: string) {
+  return {
+    success: false,
+    message: NOT_AVAILABLE_MESSAGE,
+  };
 }

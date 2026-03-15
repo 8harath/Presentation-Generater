@@ -2,7 +2,6 @@
 
 import { generateImageAction } from "@/app/_actions/image/generate";
 import { getImageFromUnsplash } from "@/app/_actions/image/unsplash";
-import { updatePresentation } from "@/app/_actions/presentation/presentationActions";
 import { extractThinking } from "@/lib/thinking-extractor";
 import { usePresentationState } from "@/states/presentation-state";
 import { useChat, useCompletion } from "@ai-sdk/react";
@@ -160,18 +159,10 @@ export function PresentationGenerationManager() {
 
               if (result?.image?.url) {
                 completeRootImageGeneration(slideId, result.image.url);
-                // If we don't have a thumbnail yet, set it now and persist once
+                // If we don't have a thumbnail yet, set it now
                 const stateNow = usePresentationState.getState();
                 if (!stateNow.thumbnailUrl && stateNow.currentPresentationId) {
                   stateNow.setThumbnailUrl(result.image.url);
-                  try {
-                    await updatePresentation({
-                      id: stateNow.currentPresentationId,
-                      thumbnailUrl: result.image.url,
-                    });
-                  } catch {
-                    // Ignore persistence errors for thumbnail to avoid interrupting generation flow
-                  }
                 }
                 // Persist into slides state
                 usePresentationState.getState().setSlides(
@@ -357,19 +348,6 @@ export function PresentationGenerationManager() {
         theme,
         imageSource,
       } = usePresentationState.getState();
-
-      if (currentPresentationId) {
-        void updatePresentation({
-          id: currentPresentationId,
-          outline,
-          searchResults,
-          prompt: presentationInput,
-          title: currentPresentationTitle ?? "",
-          theme,
-          imageSource,
-        });
-      }
-
       // Cancel any pending outline animation frame
       if (outlineRafIdRef.current !== null) {
         cancelAnimationFrame(outlineRafIdRef.current);

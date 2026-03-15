@@ -1,4 +1,3 @@
-import { updatePresentation } from "@/app/_actions/presentation/presentationActions";
 import { usePresentationState } from "@/states/presentation-state";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef } from "react";
@@ -28,33 +27,12 @@ export const useDebouncedSave = (options: UseDebouncedSaveOptions = {}) => {
         const {
           slides,
           currentPresentationId,
-          currentPresentationTitle,
-          outline,
-          imageSource,
-          presentationStyle,
-          language,
-          config,
-          thumbnailUrl,
         } = usePresentationState.getState();
 
         // Don't save if there's no presentation or slides
         if (!currentPresentationId || slides.length === 0) return;
         try {
           setSavingStatus("saving");
-
-          await updatePresentation({
-            id: currentPresentationId,
-            content: {
-              slides,
-              config,
-            },
-            title: currentPresentationTitle ?? "",
-            outline,
-            imageSource,
-            presentationStyle,
-            language,
-            thumbnailUrl,
-          });
 
           setSavingStatus("saved");
           // Reset to idle after 2 seconds
@@ -86,13 +64,6 @@ export const useDebouncedSave = (options: UseDebouncedSaveOptions = {}) => {
     const {
       slides,
       currentPresentationId,
-      currentPresentationTitle,
-      outline,
-      imageSource,
-      presentationStyle,
-      language,
-      config,
-      thumbnailUrl,
     } = usePresentationState.getState();
 
     // Don't save if there's no presentation
@@ -100,20 +71,6 @@ export const useDebouncedSave = (options: UseDebouncedSaveOptions = {}) => {
 
     try {
       setSavingStatus("saving");
-
-      await updatePresentation({
-        id: currentPresentationId,
-        content: {
-          slides,
-          config,
-        },
-        title: currentPresentationTitle ?? "",
-        outline,
-        language,
-        imageSource,
-        presentationStyle,
-        thumbnailUrl,
-      });
 
       setSavingStatus("saved");
       // Reset to idle after 2 seconds
