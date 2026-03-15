@@ -18,13 +18,7 @@ export async function generateImageAction(
   prompt: string,
   model: ImageModelList = "black-forest-labs/FLUX.1-schnell-Free",
 ) {
-  // Get the current session
   const session = await auth();
-
-  // Check if user is authenticated
-  if (!session?.user?.id) {
-    throw new Error("You must be logged in to generate images");
-  }
 
   if (!env.TOGETHER_AI_API_KEY) {
     return {

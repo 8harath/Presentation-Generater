@@ -58,12 +58,6 @@ export async function togglePresentationPublicStatus(
   isPublic: boolean,
 ) {
   const session = await auth();
-  if (!session?.user) {
-    return {
-      success: false,
-      message: "Unauthorized",
-    };
-  }
 
   try {
     const presentation = await db.baseDocument.findFirst({

@@ -5,14 +5,8 @@ import { cache } from "react";
 export type AppSession = {
   user: {
     id: string;
-    clerkId: string;
     name: string | null;
     email: string | null;
-    image: string | null;
-    hasAccess: boolean;
-    location: string | null;
-    role: string;
-    isAdmin: boolean;
   };
 };
 
@@ -47,15 +41,9 @@ const syncAppUser = cache(async (): Promise<AppSession> => {
 
   return {
     user: {
-      clerkId: user.clerkId ?? "local-workspace-user",
-      email: user.email,
-      hasAccess: user.hasAccess,
       id: user.id,
-      image: user.image,
-      isAdmin: user.role === "ADMIN",
-      location: user.location,
       name: user.name,
-      role: user.role,
+      email: user.email,
     },
   };
 });

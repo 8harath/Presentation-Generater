@@ -20,9 +20,6 @@ export async function exportPresentation(
 ) {
   try {
     const session = await auth();
-    if (!session?.user) {
-      return { success: false, error: "Unauthorized" };
-    }
 
     // Here you would fetch the presentation data from your database
     // This is a placeholder - implement actual data fetching based on your data model

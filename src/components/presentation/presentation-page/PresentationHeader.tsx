@@ -1,6 +1,6 @@
 "use client";
-import SideBarDropdown from "@/components/auth/Dropdown";
 import { Brain } from "@/components/ui/icons";
+import { ThemeToggle } from "@/provider/theme-provider";
 import { usePresentationState } from "@/states/presentation-state";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -67,7 +67,7 @@ export default function PresentationHeader({ title }: PresentationHeaderProps) {
           </motion.div>
         </div>
 
-        <SideBarDropdown />
+        <ThemeToggle />
       </header>
     );
 
@@ -103,8 +103,7 @@ export default function PresentationHeader({ title }: PresentationHeaderProps) {
         {/* Present button - Only in presentation page, not outline */}
         {isPresentationPage && <PresentButton />}
 
-        {/* User profile dropdown - Keep this on all pages */}
-        {!isPresenting && <SideBarDropdown />}
+        {!isPresenting && <ThemeToggle />}
       </div>
     </header>
   );

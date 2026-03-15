@@ -69,8 +69,8 @@ An open-source, AI-powered presentation generator alternative to Gamma.app that 
 | **Framework**      | Next.js, React, TypeScript |
 | **Styling**        | Tailwind CSS               |
 | **Database**       | PostgreSQL with Prisma ORM |
-| **AI Integration** | OpenAI API, Together AI    |
-| **Authentication** | NextAuth.js                |
+| **AI Integration** | Gemini API, OpenAI API, Together AI |
+| **Authentication** | None (public access)       |
 | **UI Components**  | Radix UI                   |
 | **Text Editor**    | Plate Editor               |
 | **File Uploads**   | UploadThing                |
@@ -84,11 +84,10 @@ Before you begin, ensure you have the following installed:
 
 - Node.js 18.x or higher
 - npm, yarn, or pnpm package manager
-- PostgreSQL database
+- Supabase Postgres database
 - Required API keys:
-  - OpenAI API key (for AI generation features)
-  - Together AI API key (for image generation)
-  - Google Client ID and Secret (for authentication)
+  - Google Gemini API key (required for presentation generation)
+  - Together AI API key (optional, for image generation)
 
 ### Installation
 
@@ -125,7 +124,7 @@ Before you begin, ensure you have the following installed:
    UNSPLASH_ACCESS_KEY=""
    TAVILY_API_KEY=""
 
-   # Optional local no-auth workspace identity
+   # Optional shared app user label
    LOCAL_USER_EMAIL="local@allweone.app"
    LOCAL_USER_NAME="Local Workspace"
    ```
@@ -143,7 +142,7 @@ Before you begin, ensure you have the following installed:
    This will:
    - generate the Prisma client
    - create/update all tables in your Supabase Postgres database
-   - seed the local workspace user used when authentication is disabled
+   - seed the shared app user used for all public visitors
 
 1. **Start the development server**
 
@@ -185,7 +184,7 @@ npm run repo:update
 
 Follow these steps to create your first AI-generated presentation:
 
-1. Login the website
+1. Open the website
 1. Navigate to the dashboard
 1. Enter your presentation topic
 1. Choose the number of slides (recommended: 5-10)

@@ -1,5 +1,4 @@
 import { modelPicker } from "@/lib/model-picker";
-import { auth } from "@/server/auth";
 import { streamText } from "ai";
 import { NextResponse } from "next/server";
 import { search_tool } from "./search_tool";
@@ -56,11 +55,6 @@ Remember: Use web search strategically to enhance the outline with current, rele
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const {
       prompt,
       numberOfCards,

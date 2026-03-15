@@ -43,9 +43,6 @@ export async function createPresentation({
   language?: string;
 }) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const presentation = await db.baseDocument.create({
@@ -123,9 +120,6 @@ export async function updatePresentation({
   thumbnailUrl?: string;
 }) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const existing = await getOwnedPresentation(id, session.user.id);
@@ -176,9 +170,6 @@ export async function updatePresentation({
 
 export async function updatePresentationTitle(id: string, title: string) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const existing = await getOwnedPresentation(id, session.user.id);
@@ -218,9 +209,6 @@ export async function deletePresentation(id: string) {
 
 export async function deletePresentations(ids: string[]) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const result = await db.baseDocument.deleteMany({
@@ -265,9 +253,6 @@ export async function deletePresentations(ids: string[]) {
 
 export async function getPresentation(id: string) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const presentation = await getOwnedPresentation(id, session.user.id);
@@ -294,9 +279,6 @@ export async function getPresentation(id: string) {
 
 export async function getPresentationContent(id: string) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const presentation = await db.baseDocument.findFirst({
@@ -339,9 +321,6 @@ export async function getPresentationContent(id: string) {
 
 export async function updatePresentationTheme(id: string, theme: string) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const existing = await getOwnedPresentation(id, session.user.id);
@@ -374,9 +353,6 @@ export async function updatePresentationTheme(id: string, theme: string) {
 
 export async function duplicatePresentation(id: string, newTitle?: string) {
   const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
 
   try {
     const original = await getOwnedPresentation(id, session.user.id);
