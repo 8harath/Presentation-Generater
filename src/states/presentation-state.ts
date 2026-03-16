@@ -21,7 +21,7 @@ interface PresentationState {
   imageSource: "ai" | "stock";
   stockImageProvider: "unsplash";
   presentationStyle: string;
-  modelProvider: "gemini" | "openai" | "ollama" | "lmstudio";
+  modelProvider: "gemini";
   modelId: string;
   savingStatus: "idle" | "saving" | "saved";
   isPresenting: boolean;
@@ -91,7 +91,7 @@ interface PresentationState {
   setImageSource: (source: "ai" | "stock") => void;
   setStockImageProvider: (provider: "unsplash") => void;
   setPresentationStyle: (style: string) => void;
-  setModelProvider: (provider: "gemini" | "openai" | "ollama" | "lmstudio") => void;
+  setModelProvider: (provider: "gemini") => void;
   setModelId: (id: string) => void;
   setSavingStatus: (status: "idle" | "saving" | "saved") => void;
   setIsPresenting: (isPresenting: boolean) => void;
@@ -133,7 +133,7 @@ export const usePresentationState = create<PresentationState>((set) => ({
   thumbnailUrl: undefined,
   setThumbnailUrl: (url) => set({ thumbnailUrl: url }),
   numSlides: 5,
-  language: "en-US",
+  language: "en-IN",
   pageStyle: "default",
   showTemplates: false,
   presentationInput: "",
@@ -147,7 +147,7 @@ export const usePresentationState = create<PresentationState>((set) => ({
   stockImageProvider: "unsplash",
   presentationStyle: "professional",
   modelProvider: "gemini",
-  modelId: "",
+  modelId: "gemini-2.5-pro",
   slides: [], // Now holds the new slide object structure
   outlineThinking: "",
   presentationThinking: "",

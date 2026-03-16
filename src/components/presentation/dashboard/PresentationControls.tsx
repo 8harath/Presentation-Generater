@@ -64,18 +64,18 @@ export function PresentationControls({
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="en-US">English (US)</SelectItem>
-            <SelectItem value="pt">Portuguese</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-            <SelectItem value="de">German</SelectItem>
-            <SelectItem value="it">Italian</SelectItem>
-            <SelectItem value="ja">Japanese</SelectItem>
-            <SelectItem value="ko">Korean</SelectItem>
-            <SelectItem value="zh">Chinese</SelectItem>
-            <SelectItem value="ru">Russian</SelectItem>
+            <SelectItem value="en-IN">English (India)</SelectItem>
             <SelectItem value="hi">Hindi</SelectItem>
-            <SelectItem value="ar">Arabic</SelectItem>
+            <SelectItem value="bn">Bengali</SelectItem>
+            <SelectItem value="ta">Tamil</SelectItem>
+            <SelectItem value="te">Telugu</SelectItem>
+            <SelectItem value="mr">Marathi</SelectItem>
+            <SelectItem value="gu">Gujarati</SelectItem>
+            <SelectItem value="kn">Kannada</SelectItem>
+            <SelectItem value="ml">Malayalam</SelectItem>
+            <SelectItem value="pa">Punjabi</SelectItem>
+            <SelectItem value="or">Odia</SelectItem>
+            <SelectItem value="as">Assamese</SelectItem>
           </SelectContent>
         </Select>
       </div>
