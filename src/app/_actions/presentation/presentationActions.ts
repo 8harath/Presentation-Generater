@@ -213,8 +213,8 @@ export async function getPresentation(id: string) {
         searchResults: doc.presentation.searchResults,
         content: doc.presentation.content,
         thumbnailUrl: doc.thumbnailUrl,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
       },
     };
   } catch (error) {
@@ -299,8 +299,8 @@ export async function listPresentations() {
         title: doc.title,
         theme: doc.presentation?.theme ?? "mystique",
         thumbnailUrl: doc.thumbnailUrl,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
       })),
     };
   } catch (error) {

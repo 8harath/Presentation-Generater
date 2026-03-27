@@ -21,8 +21,8 @@ interface SavedPresentation {
   title: string;
   theme: string;
   thumbnailUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function PresentationDashboard({
@@ -61,11 +61,16 @@ export function PresentationDashboard({
 
   const loadPresentations = async () => {
     setLoadingList(true);
-    const result = await listPresentations();
-    if (result.success) {
-      setSavedPresentations(result.presentations);
+    try {
+      const result = await listPresentations();
+      if (result.success) {
+        setSavedPresentations(result.presentations);
+      }
+    } catch (error) {
+      console.error("Failed to load presentations:", error);
+    } finally {
+      setLoadingList(false);
     }
-    setLoadingList(false);
   };
 
   const handleGenerate = async () => {

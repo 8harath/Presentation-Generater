@@ -1,6 +1,9 @@
 import { spawnSync } from "node:child_process";
 
-const commands = [["npx", ["next", "build", "--turbo"]]];
+const commands = [
+  ["npx", ["prisma", "generate"]],
+  ["npx", ["next", "build", "--turbo"]],
+];
 
 for (const [command, args] of commands) {
   const resolvedCommand = process.platform === "win32" ? `${command}.cmd` : command;
