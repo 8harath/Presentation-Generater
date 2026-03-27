@@ -1,5 +1,6 @@
 "use client";
 
+import { getPresentation } from "@/app/_actions/presentation/presentationActions";
 import { type PlateSlide } from "@/components/presentation/utils/parser";
 import {
   setThemeVariables,
@@ -9,8 +10,8 @@ import {
 } from "@/lib/presentation/themes";
 import { usePresentationState } from "@/states/presentation-state";
 import { useTheme } from "next-themes";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { LoadingState } from "./Loading";
 import { PresentationLayout } from "./PresentationLayout";
 import { PresentationSlidesView } from "./PresentationSlidesView";
@@ -25,8 +26,11 @@ function normalizeOutline(outline: unknown): string[] {
 
 export default function PresentationPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const { resolvedTheme } = useTheme();
+  const [isLoadingFromDb, setIsLoadingFromDb] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const setCurrentPresentation = usePresentationState(
     (s) => s.setCurrentPresentation,
   );
@@ -54,6 +58,49 @@ export default function PresentationPage() {
   const outline = usePresentationState((s) => s.outline);
   const slides = usePresentationState((s) => s.slides);
   const config = usePresentationState((s) => s.config);
+
+  // Load from DB if the presentation isn't in Zustand state
+  useEffect(() => {
+    if (currentPresentationId === id) return;
+
+    async function loadFromDb() {
+      setIsLoadingFromDb(true);
+      setLoadError(null);
+      try {
+        const result = await getPresentation(id);
+        if (result.success && result.presentation) {
+          const p = result.presentation;
+          setCurrentPresentation(id, p.title);
+          setPresentationInput(p.prompt || p.title);
+          setOutline(normalizeOutline(p.outline));
+          if (p.theme && p.theme in themes) {
+            setTheme(p.theme as Themes);
+          }
+          if (p.language) setLanguage(p.language);
+          if (p.presentationStyle) setPresentationStyle(p.presentationStyle);
+          if (p.imageSource) setImageSource(p.imageSource as "ai" | "stock");
+          if (p.thumbnailUrl) setThumbnailUrl(p.thumbnailUrl);
+
+          // Load slides from content
+          const content = p.content as { slides?: PlateSlide[]; config?: Record<string, unknown> } | null;
+          if (content?.slides && content.slides.length > 0) {
+            setSlides(content.slides);
+          }
+          if (content?.config) {
+            usePresentationState.getState().setConfig(content.config);
+          }
+        } else {
+          setLoadError("Presentation not found");
+        }
+      } catch {
+        setLoadError("Failed to load presentation");
+      } finally {
+        setIsLoadingFromDb(false);
+      }
+    }
+
+    loadFromDb();
+  }, [id, currentPresentationId]);
 
   useEffect(() => {
     if (currentPresentationId !== id) {
@@ -123,12 +170,32 @@ export default function PresentationPage() {
     return null;
   })();
 
+  if (isLoadingFromDb) {
+    return <LoadingState />;
+  }
+
+  if (loadError && currentPresentationId !== id) {
+    return (
+      <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-3">
+        <h2 className="text-2xl font-semibold">Presentation not found</h2>
+        <p className="text-center text-muted-foreground">{loadError}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          onClick={() => router.push("/presentation")}
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
   if (currentPresentationId !== id) {
     return (
       <div className="flex h-[calc(100vh-8rem)] flex-col items-center justify-center gap-3">
         <h2 className="text-2xl font-semibold">No active presentation session</h2>
         <p className="text-center text-muted-foreground">
-          Instant mode does not save presentations. Start a new one from the dashboard.
+          Start a new one from the dashboard.
         </p>
       </div>
     );
