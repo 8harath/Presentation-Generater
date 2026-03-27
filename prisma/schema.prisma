@@ -83,7 +83,7 @@ model Presentation {
     id                String       @id @default(cuid())
     content           Json
     theme             String       @default("mystique")
-    imageSource       String       @default("ai")
+    imageSource       String       @default("stock")
     prompt            String?
     presentationStyle String?
     language          String?      @default("en-US")
