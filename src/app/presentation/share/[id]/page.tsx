@@ -1,16 +1,35 @@
-import { getSharedPresentation } from "@/app/_actions/presentation/sharedPresentationActions";
-import Link from "next/link";
+"use client";
+
 import { SharedPresentationClient } from "./SharedPresentationClient";
+import { presentationStorage } from "@/lib/presentation-storage";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default async function SharedPresentationPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const result = await getSharedPresentation(id);
+export default function SharedPresentationPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const [presentation, setPresentation] = useState<{
+    title: string;
+    theme: string;
+    slides: unknown[];
+  } | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!result.success || !result.presentation) {
+  useEffect(() => {
+    const stored = presentationStorage.get(id);
+    if (stored && stored.isPublic) {
+      setPresentation({
+        title: stored.title,
+        theme: stored.theme,
+        slides: stored.content?.slides ?? [],
+      });
+    } else {
+      setNotFound(true);
+    }
+  }, [id]);
+
+  if (notFound) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         <h1 className="text-3xl font-semibold">Presentation not found</h1>
@@ -27,21 +46,15 @@ export default async function SharedPresentationPage({
     );
   }
 
-  const { presentation } = result;
-  const content = presentation.content as {
-    slides?: Array<{
-      id: string;
-      title?: string;
-      content?: unknown[];
-      rootImage?: { query: string; url?: string; layoutType?: string };
-    }>;
-  } | null;
+  if (!presentation) {
+    return null;
+  }
 
   return (
     <SharedPresentationClient
       title={presentation.title}
       theme={presentation.theme}
-      slides={content?.slides ?? []}
+      slides={presentation.slides}
     />
   );
 }

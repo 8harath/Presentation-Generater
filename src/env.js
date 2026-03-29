@@ -13,8 +13,8 @@ export const env = createEnv({
     TOGETHER_AI_API_KEY: z.string().optional(),
     UNSPLASH_ACCESS_KEY: z.string().optional(),
     UPLOADTHING_TOKEN: z.string().optional(),
-    DATABASE_URL: z.string(),
-    DIRECT_URL: z.string(),
+    DATABASE_URL: z.string().optional(),
+    DIRECT_URL: z.string().optional(),
   },
 
   runtimeEnv: {
