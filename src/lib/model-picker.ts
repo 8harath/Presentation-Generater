@@ -1,6 +1,8 @@
+import "server-only";
 import { createOpenAI } from "@ai-sdk/openai";
+import { DEFAULT_MODEL } from "./ai-constants";
 
-export const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+export { DEFAULT_MODEL };
 
 const groq = createOpenAI({
   name: "groq",

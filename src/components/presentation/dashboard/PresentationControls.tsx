@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/select";
 import { usePresentationState } from "@/states/presentation-state";
 import { Layout } from "lucide-react";
-import { ModelPicker } from "./ModelPicker";
 
 export function PresentationControls({
   shouldShowLabel = true,
@@ -24,10 +23,7 @@ export function PresentationControls({
   } = usePresentationState();
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {/* Model Selection */}
-      <ModelPicker shouldShowLabel={shouldShowLabel} />
-
+    <div className="grid grid-cols-3 gap-4">
       {/* Number of Slides */}
       <div>
         {shouldShowLabel && (

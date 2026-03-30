@@ -1,7 +1,6 @@
 import TanStackQueryProvider from "@/provider/TanstackProvider";
 import { ThemeProvider } from "@/provider/theme-provider";
 import "@/styles/globals.css";
-import Link from "next/link";
 import { type Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -23,16 +22,6 @@ export default async function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <TanStackQueryProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <header className="pointer-events-none fixed right-4 top-4 z-50">
-              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur">
-                <Link
-                  href="/presentation"
-                  className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 text-sm font-medium ring-offset-background transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  Dashboard
-                </Link>
-              </div>
-            </header>
             {children}
           </ThemeProvider>
         </TanStackQueryProvider>
